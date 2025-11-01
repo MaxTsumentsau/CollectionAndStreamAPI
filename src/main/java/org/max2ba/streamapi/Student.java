@@ -62,11 +62,11 @@ public class Student {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Student student = (Student) o;
-        return id == student.id;
+        return id == student.id && age == student.age && Objects.equals(name, student.name) && Objects.equals(books, student.books);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, name, age, books);
     }
 }

@@ -103,6 +103,11 @@ public class StreamRunner {
                 .distinct()
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException("Книги не найдены у студентов"));
+        //или дословно Optional
+        System.out.println("Optional: " + students.stream()
+                .flatMap(student -> student.getBooks().stream())
+                .distinct()
+                .findFirst());
         System.out.println("========================================================================================");
 
         //При помощи методов получения значения из Optional вывести в консоль год выпуска найденной книги, либо запись
