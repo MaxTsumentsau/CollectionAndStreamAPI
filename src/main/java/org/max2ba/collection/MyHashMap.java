@@ -36,6 +36,27 @@ public class MyHashMap<K, V> implements Map<K, V> {
             this.value = value;
             return old;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Map.Entry)) return false;
+
+            Map.Entry<?, ?> other = (Map.Entry<?, ?>) o;
+
+            return Objects.equals(key, other.getKey()) &&
+                    Objects.equals(value, other.getValue());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(key) ^ Objects.hashCode(value);
+        }
+
+        @Override
+        public String toString() {
+            return key + "=" + value;
+        }
     }
 
     public MyHashMap() {
