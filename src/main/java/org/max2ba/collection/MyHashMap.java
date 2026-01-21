@@ -2,14 +2,14 @@ package org.max2ba.collection;
 
 import java.util.*;
 
-public class MyHashMap<K, V> {
+public class MyHashMap<K, V> implements Map<K, V> {
 
     private static final int INITIAL_CAPACITY = 16;
     private static final double LOAD_FACTOR = 0.75;
     private Node<K, V>[] buckets;
     private int size;
 
-    private static class Node<K, V> {
+    private static class Node<K, V> implements Map.Entry<K, V> {
         final K key;
         V value;
         Node<K, V> next;
@@ -19,6 +19,23 @@ public class MyHashMap<K, V> {
             this.value = value;
             this.next = next;
         }
+
+        @Override
+        public K getKey() {
+            return key;
+        }
+
+        @Override
+        public V getValue() {
+            return value;
+        }
+
+        @Override
+        public V setValue(V value) {
+            V old = this.value;
+            this.value = value;
+            return old;
+        }
     }
 
     public MyHashMap() {
@@ -26,15 +43,17 @@ public class MyHashMap<K, V> {
         this.size = 0;
     }
 
+    @Override
     public int size() {
         return size;
     }
 
-
+    @Override
     public boolean isEmpty() {
         return size == 0;
     }
 
+    @Override
     public void clear() {
         this.buckets = new Node[INITIAL_CAPACITY];
         this.size = 0;
@@ -62,7 +81,8 @@ public class MyHashMap<K, V> {
         }
     }
 
-    public boolean put(K key, V value) {
+    @Override
+    public V put(K key, V value) {
         if (key == null) {
             throw new IllegalArgumentException("Нельзя добавлять null элементы");
         }
@@ -76,27 +96,38 @@ public class MyHashMap<K, V> {
 
         while (current != null) {
             if (current.key.equals(key)) {
+                V previousValue = current.value;
                 current.value = value;
-                return true;
+                return previousValue;
             }
             current = current.next;
         }
 
         buckets[bucketIndex] = new Node<>(key, value, buckets[bucketIndex]);
         size++;
-        return true;
+        return value;
     }
 
-    public V get(K key) {
+    @Override
+    public void putAll(Map<? extends K, ? extends V> m) {
+        for (K key : m.keySet()) {
+            V value = m.get(key);
+            this.put(key, value);
+        }
+    }
+
+    @Override
+    public V get(Object key) {
         if (key == null) {
             throw new IllegalArgumentException("Нельзя хранить в виде ключа null элементы");
         }
 
-        int bucketIndex = getBucketIndex(key);
+        K typedKey = (K) key;
+        int bucketIndex = getBucketIndex(typedKey);
         Node<K, V> current = buckets[bucketIndex];
 
         while (current != null) {
-            if (key.equals(current.key)) {
+            if (typedKey.equals(current.key)) {
                 return current.value;
             }
             current = current.next;
@@ -105,42 +136,46 @@ public class MyHashMap<K, V> {
         return null;
     }
 
-    public boolean remove(K key) {
+    @Override
+    public V remove(Object key) {
         if (key == null) {
-            return false;
+            return null;
         }
 
-        int bucketIndex = getBucketIndex(key);
+        K typedKey = (K) key;
+        int bucketIndex = getBucketIndex(typedKey);
         Node<K, V> current = buckets[bucketIndex];
         Node<K, V> prev = null;
 
         while (current != null) {
-            if (key.equals(current.key)) {
+            if (typedKey.equals(current.key)) {
                 if (prev == null) {
                     buckets[bucketIndex] = current.next;
                 } else {
                     prev.next = current.next;
                 }
                 size--;
-                return true;
+                return current.value;
             }
             prev = current;
             current = current.next;
         }
 
-        return false;
+        return null;
     }
 
-    public boolean containsKey(K key) {
+    @Override
+    public boolean containsKey(Object key) {
         if (key == null) {
             return false;
         }
+        K typedKey = (K) key;
 
-        int bucketIndex = getBucketIndex(key);
+        int bucketIndex = getBucketIndex(typedKey);
         Node<K, V> current = buckets[bucketIndex];
 
         while (current != null) {
-            if (current.key.equals(key)) {
+            if (current.key.equals(typedKey)) {
                 return true;
             }
             current = current.next;
@@ -149,7 +184,8 @@ public class MyHashMap<K, V> {
         return false;
     }
 
-    public boolean containsValue(V value) {
+    @Override
+    public boolean containsValue(Object value) {
         for (Node<K, V> bucket : buckets) {
             Node<K, V> current = bucket;
 
@@ -183,6 +219,7 @@ public class MyHashMap<K, V> {
         return sb.toString();
     }
 
+    @Override
     public Set<K> keySet() {
         Set<K> keySet = new HashSet<>();
 
@@ -198,6 +235,7 @@ public class MyHashMap<K, V> {
         return keySet;
     }
 
+    @Override
     public List<V> values() {
         List<V> list = new ArrayList<>(size);
 
@@ -211,5 +249,45 @@ public class MyHashMap<K, V> {
         }
 
         return list;
+    }
+
+    @Override
+    public Set<Map.Entry<K, V>> entrySet() {
+        Set<Map.Entry<K, V>> set = new HashSet<>(size);
+        for (Node<K, V> bucket : buckets) {
+            Node<K, V> current = bucket;
+            while (current != null) {
+                set.add(current);
+                current = current.next;
+            }
+        }
+        return set;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Map)) return false;
+        Map<?, ?> other = (Map<?, ?>) o;
+        if (other.size() != this.size) return false;
+
+        for (Map.Entry<K, V> entry : this.entrySet()) {
+            K key = entry.getKey();
+            V value = entry.getValue();
+            if (!Objects.equals(value, other.get(key))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    //hashCode карты-это сумма hashCode всех её entry.
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        for (Map.Entry<K, V> entry : this.entrySet()) {
+            hash += entry.hashCode();
+        }
+        return hash;
     }
 }
