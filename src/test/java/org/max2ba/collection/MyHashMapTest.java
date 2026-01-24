@@ -199,5 +199,4 @@ class MyHashMapTest {
             assertEquals(i, map.get("k" + i));
         }
     }
-
 }
