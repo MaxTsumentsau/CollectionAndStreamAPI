@@ -2,6 +2,13 @@ package org.max2ba.collection;
 
 import java.util.*;
 
+/**
+ * Учебная реализация HashMap на основе массива бакетов и метода цепочек (использован односвязный список).
+ * Написал юнит-тесты.
+ *
+ * @param <K> тип ключей
+ * @param <V> тип значений
+ */
 public class MyHashMap<K, V> implements Map<K, V> {
 
     private static final int INITIAL_CAPACITY = 16;
